@@ -1,0 +1,34 @@
+FROM golang:alpine3.15 as builder
+
+WORKDIR $GOPATH/src/github.com/ru-asdx/shell2http
+ENV CGO_ENABLED=0
+
+RUN apk add --no-cache git gcc musl-dev && \
+    git clone https://github.com/ru-asdx/shell2http $GOPATH/src/github.com/ru-asdx/shell2http && \
+    go build -v -trimpath -ldflags="-w -s -X 'main.version=$(git describe --abbrev=0 --tags | sed s/v//)'" -o /go/bin/shell2http .
+
+WORKDIR /tmp
+
+COPY . .
+
+RUN gcc mapdata22.c -g -o mapdata && \
+    strip --strip-all ./mapdata
+
+
+##
+
+FROM alpine:3.15
+MAINTAINER asdx
+
+RUN apk add --update tini ; \
+    rm -rf /var/cache/apk/* ; \
+    adduser -S -H map
+
+WORKDIR /app
+
+COPY --from=builder /go/bin/shell2http /tmp/mapdata ./
+
+USER map
+
+ENTRYPOINT ["/sbin/tini", "--"]
+CMD /app/shell2http -port 30002 -form /mapdata '/app/mapdata $v_host $v_port'
