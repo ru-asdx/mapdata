@@ -13,6 +13,6 @@ $ make
 ```
 $ ./mapdata <host> <port>
 
-   <host> - IP адрес конвертора RS232-TCP/IP
-   <port> - порт конвертора RS232-TCP/IP
+   <host> - IP address RS232-TCP/IP converter
+   <port> - port RS232-TCP/IP converter
 ```
